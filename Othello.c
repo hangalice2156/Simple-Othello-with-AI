@@ -15,6 +15,7 @@ struct move {
 
 void show_board(struct board *game);
 void ai_move(struct move *m, int enable_cells[8][8]);
+void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game);
 void update_board(struct board *game ,struct move a);
 void get_enable_cells(int player, struct board *game, int enable_cells[8][8]);
 int has_enable_cells(int enable_cells[8][8]);
@@ -81,12 +82,38 @@ int main()
         //switch player
         game.player = 1 - game.player;
         game.move++;
+        if(m.col == -1 && m.row == -1) game.move--;
+    }
+
+    printf("game over\n");
+    int white_score = 0;
+    int black_score = 0;
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            if(game.place[i][j] == 'b') {
+                black_score++;
+            }
+            if(game.place[i][j] == 'w') {
+                white_score++;
+            }
+        }
+    }
+    printf("Black score: %d\nWhite score: %d\n", black_score, white_score);
+    if(black_score > white_score) {
+        printf("Black wins!\n");
+    } else if(white_score > black_score) {
+        printf("White wins!\n");
+    } else if(white_score == black_score) {
+        printf("Draw\n");
     }
 }
 
 void show_board(struct board *game)
 {
+    printf("   0 1 2 3 4 5 6 7\n");
+    printf("   ---------------\n");
     for(int i = 0; i < 8; i++) {
+        printf("%d |", i);
         for(int j = 0; j < 8; j++) {
             printf("%c ", game->place[i][j]);
         }
@@ -106,6 +133,12 @@ void ai_move(struct move *m, int enable_cells[8][8])
             }
         }
     }
+    return;
+}
+
+void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game)
+{
+    //may select the better move
     return;
 }
 
@@ -153,7 +186,7 @@ int can_put_line(int player, int selected[2], int index, struct board *game, int
     tmp[1] = tmp[1] + directions[index][1];
 
     char color = (player == 0)? 'b':'w';
-    if (tmp[0] <= -1 || tmp[1] <= -1 || tmp[0] > 8 || tmp[1] > 8) {
+    if (tmp[0] <= -1 || tmp[1] <= -1 || tmp[0] > 7 || tmp[1] > 7) {
         //col
         return 0;
     } else if (game->place[tmp[0]][tmp[1]] == 'e') {
