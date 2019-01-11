@@ -72,8 +72,8 @@ int main()
             //ai_better_move(&m, enable_cells, &game);
         }
         printf("move row:%d col:%d\n", m.row, m.col);
-
-        reverse(game.player, m, &game);
+        if(m.row != -1 && m.col != -1)
+            reverse(game.player, m, &game);
         show_board(&game);
         //switch player
         game.player = 1 - game.player;
@@ -178,7 +178,7 @@ void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game)
                 get_enable_cells(copy.player, &copy, try_enable); //check opponent avaliable moves.
 
                 score = simple_score(try_enable);
-                //printf("%d\n", score);
+                printf("%d\n", score);
                 if(score < best_score && score != -1) {
                     best_score = score;
                     m->row = trial.row;
@@ -187,6 +187,11 @@ void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game)
 
                 copy = *game; //recover the board for the next trial.
                 score = -1;
+                for(int i = 0; i < 8; i++) {
+                    for(int j = 0; j < 8; j++) {
+                        try_enable[i][j] = 0;
+                    }
+                }
             }
         }
     }
