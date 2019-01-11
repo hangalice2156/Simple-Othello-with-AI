@@ -14,9 +14,9 @@ struct move {
 };
 
 void show_board(struct board *game);
+void show_enable(int enable_cells[8][8]);
 void ai_move(struct move *m, int enable_cells[8][8]);
 void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game);
-void update_board(struct board *game ,struct move a);
 void get_enable_cells(int player, struct board *game, int enable_cells[8][8]);
 int has_enable_cells(int enable_cells[8][8]);
 int simple_score(int enable_cells[8][8]);
@@ -56,13 +56,7 @@ int main()
             }
         }
         get_enable_cells(game.player, &game, enable_cells);
-        //show enable place
-        for(int i = 0; i < 8; i++) {
-            for(int j = 0; j < 8; j++) {
-                printf("%d ", enable_cells[i][j]);
-            }
-            printf("\n");
-        }
+        show_enable(enable_cells);
 
         //display current state
         printf("current player:%d\n", game.player);
@@ -75,6 +69,7 @@ int main()
         else {
             printf("\nplayer turn:\n");
             scanf("%d %d", &m.row, &m.col);
+            //ai_better_move(&m, enable_cells, &game);
         }
         printf("move row:%d col:%d\n", m.row, m.col);
 
@@ -123,6 +118,24 @@ void show_board(struct board *game)
     printf("\n");
 }
 
+void show_enable(int enable_cells[8][8])
+{
+    //show enable place
+    printf("Current enable places:\n");
+    printf("   0 1 2 3 4 5 6 7\n");
+    printf("   ---------------\n");
+    for(int i = 0; i < 8; i++) {
+        printf("%d |", i);
+        for(int j = 0; j < 8; j++) {
+            printf("%d ", enable_cells[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    return;
+}
+
 void ai_move(struct move *m, int enable_cells[8][8])
 {
     //just select the top left
@@ -151,7 +164,7 @@ void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game)
             try_enable[i][j] = 0;
         }
     }
-    int score = 0;
+    int score = -1;
     int best_score = 64; //less is better;
 
     for(int i = 0; i < 8; i++) {
@@ -160,18 +173,20 @@ void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game)
                 trial.row = i;
                 trial.col = j;
                 reverse(copy.player, trial, &copy); //try avaliable moves.
-                
+                //show_board(&copy);
                 copy.player = 1 - copy.player;
                 get_enable_cells(copy.player, &copy, try_enable); //check opponent avaliable moves.
 
                 score = simple_score(try_enable);
-                if(score < best_score) {
+                //printf("%d\n", score);
+                if(score < best_score && score != -1) {
                     best_score = score;
                     m->row = trial.row;
                     m->col = trial.col;
                 }
 
                 copy = *game; //recover the board for the next trial.
+                score = -1;
             }
         }
     }
@@ -180,7 +195,7 @@ void ai_better_move(struct move *m, int enable_cells[8][8], struct board *game)
 
 int simple_score(int enable_cells[8][8])
 {
-    int score;
+    int score = 0;
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
             if(enable_cells[i][j]) { //calculate all enable cells
@@ -190,11 +205,6 @@ int simple_score(int enable_cells[8][8])
     }
 
     return score;
-}
-
-void update_board(struct board *game ,struct move a)
-{
-    return;
 }
 
 void get_enable_cells(int player, struct board *game, int enable_cells[8][8])
@@ -236,7 +246,7 @@ int can_put_line(int player, int selected[2], int index, struct board *game, int
     tmp[1] = tmp[1] + directions[index][1];
 
     char color = (player == 0)? 'b':'w';
-    if (tmp[0] <= 0 || tmp[1] <= 0 || tmp[0] > 7 || tmp[1] > 7) {
+    if (tmp[0] <= -1 || tmp[1] <= -1 || tmp[0] > 7 || tmp[1] > 7) {
         //col
         return 0;
     } else if (game->place[tmp[0]][tmp[1]] == 'e') {
